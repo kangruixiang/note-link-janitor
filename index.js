@@ -1,12 +1,12 @@
 #!/usr/bin/env node
-
-import * as fs from "fs";
-import * as graph from "pagerank.js";
-import * as path from "path";
-
-import createLinkMap from "./lib/createLinkMap";
-import readAllNotes from "./lib/readAllNotes";
-import updateBacklinks from "./lib/updateBacklinks";
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const fs = require("fs");
+const graph = require("pagerank.js");
+const path = require("path");
+const createLinkMap_1 = require("./lib/createLinkMap");
+const readAllNotes_1 = require("./lib/readAllNotes");
+const updateBacklinks_1 = require("./lib/updateBacklinks");
 
 (async () => {
   const baseNotePath = process.argv[2];
@@ -14,33 +14,35 @@ import updateBacklinks from "./lib/updateBacklinks";
     console.log("Usage: note-link-janitor [NOTE_DIRECTORY]");
     return;
   }
-
-  const notes = await readAllNotes(baseNotePath);
-  const linkMap = createLinkMap(Object.values(notes));
-
+  try {
+    var notes = await readAllNotes_1.default(baseNotePath);
+  } catch (e) {
+    console.log(e);
+  }
+  //   console.log(notes);
+  const linkMap = createLinkMap_1.default(Object.values(notes));
   // Sort by PageRank
   for (const note of linkMap.keys()) {
-    const entry = linkMap.get(note)!;
+    const entry = linkMap.get(note);
     for (const linkingNote of entry.keys()) {
       graph.link(linkingNote, note, 1.0);
     }
   }
-  const noteRankings: { [key: string]: number } = {};
-  graph.rank(0.85, 0.000001, function(node, rank) {
+  const noteRankings = {};
+  graph.rank(0.85, 0.000001, function (node, rank) {
     noteRankings[node] = rank;
   });
-
   await Promise.all(
-    Object.keys(notes).map(async notePath => {
+    Object.keys(notes).map(async (notePath) => {
       const backlinks = linkMap.get(notes[notePath].title);
-      const newContents = updateBacklinks(
+      const newContents = updateBacklinks_1.default(
         notes[notePath].parseTree,
         notes[notePath].noteContents,
         backlinks
           ? [...backlinks.keys()]
-              .map(sourceTitle => ({
+              .map((sourceTitle) => ({
                 sourceTitle,
-                context: backlinks.get(sourceTitle)!
+                context: backlinks.get(sourceTitle),
               }))
               .sort(
                 (
@@ -53,12 +55,12 @@ import updateBacklinks from "./lib/updateBacklinks";
           : []
       );
       if (newContents !== notes[notePath].noteContents) {
-        await fs.promises.writeFile(
-          path.join(baseNotePath, path.basename(notePath)),
-          newContents,
-          { encoding: "utf-8" }
-        );
+        // console.log(baseNotePath, notePath);
+        await fs.promises.writeFile(notePath, newContents, {
+          encoding: "utf-8",
+        });
       }
     })
   );
 })();
+//# sourceMappingURL=index.js.map
