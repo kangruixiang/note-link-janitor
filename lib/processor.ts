@@ -11,7 +11,7 @@ function allLinksHaveTitles() {
   const visitors = Compiler.prototype.visitors;
   const original = visitors.link;
 
-  visitors.link = function(linkNode) {
+  visitors.link = function (linkNode) {
     return original.bind(this)({
       ...linkNode,
       title: linkNode.title || ""
@@ -22,7 +22,7 @@ function allLinksHaveTitles() {
 const processor = unified()
   .use(RemarkParse as any, { commonmark: true, pedantic: true }) // type decl doesn't have options
   .use(RemarkStringify, {
-    bullet: "*",
+    bullet: "-",
     emphasis: "*",
     listItemIndent: "1",
     rule: "-",

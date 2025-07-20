@@ -26,7 +26,7 @@ import updateBacklinks from "./lib/updateBacklinks";
     }
   }
   const noteRankings: { [key: string]: number } = {};
-  graph.rank(0.85, 0.000001, function(node, rank) {
+  graph.rank(0.85, 0.000001, function (node, rank) {
     noteRankings[node] = rank;
   });
 
@@ -38,18 +38,18 @@ import updateBacklinks from "./lib/updateBacklinks";
         notes[notePath].noteContents,
         backlinks
           ? [...backlinks.keys()]
-              .map(sourceTitle => ({
-                sourceTitle,
-                context: backlinks.get(sourceTitle)!
-              }))
-              .sort(
-                (
-                  { sourceTitle: sourceTitleA },
-                  { sourceTitle: sourceTitleB }
-                ) =>
-                  (noteRankings[sourceTitleB] || 0) -
-                  (noteRankings[sourceTitleA] || 0)
-              )
+            .map(sourceTitle => ({
+              sourceTitle,
+              context: backlinks.get(sourceTitle)!
+            }))
+            .sort(
+              (
+                { sourceTitle: sourceTitleA },
+                { sourceTitle: sourceTitleB }
+              ) =>
+                (noteRankings[sourceTitleB] || 0) -
+                (noteRankings[sourceTitleA] || 0)
+            )
           : []
       );
       if (newContents !== notes[notePath].noteContents) {
