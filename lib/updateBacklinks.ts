@@ -73,7 +73,7 @@ export default function updateBacklinks(
         }
       ]
     };
-    backlinksString = `\n## Links to this note\n${backlinks
+    backlinksString = `## Backlinks\n${backlinks
       .map(
         entry =>
           `* [[${entry.sourceTitle}]]\n${entry.context

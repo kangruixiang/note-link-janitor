@@ -11,20 +11,20 @@ export default function getBacklinksBlock(
   tree: MDAST.Root
 ):
   | {
-    isPresent: true;
-    start: UNIST.Node;
-    until: UNIST.Node | null;
-  }
+      isPresent: true;
+      start: UNIST.Node;
+      until: UNIST.Node | null;
+    }
   | {
-    isPresent: false;
-    insertionPoint: UNIST.Node | null;
-  } {
+      isPresent: false;
+      insertionPoint: UNIST.Node | null;
+    } {
   const existingBacklinksNodeIndex = tree.children.findIndex(
     (node: UNIST.Node): node is MDAST.Heading =>
       is(node, {
         type: "heading",
         depth: 2
-      }) && is((node as MDAST.Heading).children[0], { value: "Links to this note" })
+      }) && is((node as MDAST.Heading).children[0], { value: "Backlinks" })
   );
   if (existingBacklinksNodeIndex === -1) {
     const insertionPoint =
