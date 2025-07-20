@@ -1,14 +1,12 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-function createLinkMap(notes) {
-  const linkMap = new Map();
-  for (const note of notes) {
-    // console.log(note);
-    for (const link of note.links) {
-      console.log(link);
-      const targetTitle = link.targetTitle;
-      const date = link.date;
+import * as MDAST from "mdast";
 
+import { Note } from "./Note";
+
+export default function createLinkMap(notes: Note[]) {
+  const linkMap: Map<string, Map<string, MDAST.BlockContent[]>> = new Map();
+  for (const note of notes) {
+    for (const link of note.links) {
+      const targetTitle = link.targetTitle;
       let backlinkEntryMap = linkMap.get(targetTitle);
       if (!backlinkEntryMap) {
         backlinkEntryMap = new Map();
@@ -24,8 +22,6 @@ function createLinkMap(notes) {
       }
     }
   }
-  // console.log(linkMap.get("test2")); // need to add date here
+
   return linkMap;
 }
-exports.default = createLinkMap;
-//# sourceMappingURL=createLinkMap.js.map
