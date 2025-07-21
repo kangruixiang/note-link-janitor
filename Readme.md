@@ -24,3 +24,4 @@ The script is idempotent; on subsequent runs, _it will update that backlinks sec
 - Ensures note content has new line and that there's a new line before the backlinks section
 - Index.ts was refractored into different functions for readability
 - removed the comments `<!--` function since it was breaking some of my notes with comments
+- types are consolidated to types.ts
