@@ -1,34 +1,32 @@
-import * as RemarkParse from "remark-parse";
-import * as RemarkStringify from "remark-stringify";
-import * as RemarkWikiLink from "remark-wiki-link";
+import remarkParse from "remark-parse";
+import remarkStringify from "remark-stringify";
+import remarkWikiLink from "remark-wiki-link";
+import { unified } from "unified";
+import type { Link } from 'mdast';
+import { visit } from "unist-util-visit";
 
-import unified = require("unified");
-
-// TODO adopt the more general parser in incremental-thinking
 
 function allLinksHaveTitles() {
-  const Compiler = this.Compiler;
-  const visitors = Compiler.prototype.visitors;
-  const original = visitors.link;
+    return (tree) => {
+        visit(tree, "link", (node: Link) => {
+            if (!node.title) {
+                node.title = "";
+            }
+        });
+    };
+};
 
-  visitors.link = function(linkNode) {
-    return original.bind(this)({
-      ...linkNode,
-      title: linkNode.title || ""
-    });
-  };
-}
 
 const processor = unified()
-  .use(RemarkParse as any, { commonmark: true, pedantic: true }) // type decl doesn't have options
-  .use(RemarkStringify, {
-    bullet: "*",
-    emphasis: "*",
-    listItemIndent: "1",
-    rule: "-",
-    ruleSpaces: false
-  })
-  .use(allLinksHaveTitles)
-  .use(RemarkWikiLink);
+    .use(remarkParse)
+    .use(remarkStringify, {
+        bullet: "-",
+        emphasis: "*",
+        listItemIndent: "1",
+        rule: "-",
+        ruleSpaces: false,
+    })
+    .use(allLinksHaveTitles)
+    .use(remarkWikiLink);
 
 export default processor;

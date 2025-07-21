@@ -1,64 +1,112 @@
 #!/usr/bin/env node
 
 import * as fs from "fs";
-import * as graph from "pagerank.js";
+import graph from "pagerank.js";
 import * as path from "path";
 
-import createLinkMap from "./lib/createLinkMap";
-import readAllNotes from "./lib/readAllNotes";
-import updateBacklinks from "./lib/updateBacklinks";
+import createLinkMap from "./lib/createLinkMap.ts";
+import readAllNotes from "./lib/readAllNotes.ts";
+import updateBacklinks from "./lib/updateBacklinks.ts";
+import type { NoteMap, LinkMap, LinkContextMap } from "./lib/types.ts";
 
-(async () => {
-  const baseNotePath = process.argv[2];
-  if (!baseNotePath || baseNotePath === "--help") {
-    console.log("Usage: note-link-janitor [NOTE_DIRECTORY]");
-    return;
-  }
-
-  const notes = await readAllNotes(baseNotePath);
-  const linkMap = createLinkMap(Object.values(notes));
-
-  // Sort by PageRank
-  for (const note of linkMap.keys()) {
-    const entry = linkMap.get(note)!;
-    for (const linkingNote of entry.keys()) {
-      graph.link(linkingNote, note, 1.0);
+class NoteClass {
+    baseNotePath: string
+    notes: NoteMap
+    linkMap: LinkMap
+    noteRankings: {
+        [key: string]: number;
     }
-  }
-  const noteRankings: { [key: string]: number } = {};
-  graph.rank(0.85, 0.000001, function(node, rank) {
-    noteRankings[node] = rank;
-  });
 
-  await Promise.all(
-    Object.keys(notes).map(async notePath => {
-      const backlinks = linkMap.get(notes[notePath].title);
-      const newContents = updateBacklinks(
-        notes[notePath].parseTree,
-        notes[notePath].noteContents,
-        backlinks
-          ? [...backlinks.keys()]
-              .map(sourceTitle => ({
+    constructor(baseNotePath: string) {
+        this.baseNotePath = baseNotePath
+    }
+
+    async writeContent(notePath: string, noteContents: string) {
+        if (!notePath) {
+            console.log('no notepath')
+            return
+        }
+
+        await fs.promises.writeFile(
+            path.join(baseNotePath, path.basename(notePath)),
+            noteContents,
+            { encoding: "utf-8" }
+        );
+    }
+
+    getBacklinkEntry(backlinks: LinkContextMap) {
+        if (!backlinks) return []
+
+        return [...backlinks.keys()]
+            .map(sourceTitle => ({
                 sourceTitle,
                 context: backlinks.get(sourceTitle)!
-              }))
-              .sort(
+            }))
+            .sort(
                 (
-                  { sourceTitle: sourceTitleA },
-                  { sourceTitle: sourceTitleB }
+                    { sourceTitle: sourceTitleA },
+                    { sourceTitle: sourceTitleB }
                 ) =>
-                  (noteRankings[sourceTitleB] || 0) -
-                  (noteRankings[sourceTitleA] || 0)
-              )
-          : []
-      );
-      if (newContents !== notes[notePath].noteContents) {
-        await fs.promises.writeFile(
-          path.join(baseNotePath, path.basename(notePath)),
-          newContents,
-          { encoding: "utf-8" }
-        );
-      }
-    })
-  );
-})();
+                    (this.noteRankings[sourceTitleB] || 0) -
+                    (this.noteRankings[sourceTitleA] || 0)
+            )
+
+    }
+
+    async makeBacklinks() {
+        await Promise.all(
+            Object.keys(this.notes).map(async notePath => {
+                const backlinks = this.linkMap.get(this.notes[notePath].title);
+                const backlinkEntry = this.getBacklinkEntry(backlinks)
+
+                const newContents = updateBacklinks(
+                    this.notes[notePath].parseTree,
+                    this.notes[notePath].noteContents,
+                    backlinkEntry
+                );
+
+                if (newContents !== this.notes[notePath].noteContents) {
+                    console.log('Updating note: ', notePath)
+                    await this.writeContent(notePath, newContents)
+                }
+            })
+        )
+    }
+
+    sortNotesByRank() {
+        for (const note of this.linkMap.keys()) {
+            const entry = this.linkMap.get(note)!;
+            for (const linkingNote of entry.keys()) {
+                graph.link(linkingNote, note, 1.0);
+            }
+        }
+        const noteRankings = {}
+        graph.rank(0.85, 0.000001, function (node, rank) {
+            noteRankings[node] = rank;
+        });
+        this.noteRankings = noteRankings
+    }
+
+    async mainFunc() {
+
+        if (!this.baseNotePath || this.baseNotePath === "--help") {
+            console.log("Usage: note-link-janitor [NOTE_DIRECTORY]");
+            return;
+        }
+
+        console.log("Reading notes...")
+        this.notes = await readAllNotes(baseNotePath);
+        this.linkMap = createLinkMap(Object.values(this.notes));
+
+        // Sort by PageRank
+        this.sortNotesByRank()
+
+        // Make or update backlinks
+        console.log("Making backlinks...")
+        await this.makeBacklinks()
+    }
+}
+
+const baseNotePath = process.argv[2];
+const newNotes = new NoteClass(baseNotePath)
+newNotes.mainFunc()
