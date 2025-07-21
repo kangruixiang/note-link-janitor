@@ -4,6 +4,10 @@ import getBacklinksBlock from "./getBacklinksBlock.ts";
 import processor from "./processor.ts";
 import type { BacklinkEntry } from './types.ts';
 
+function ensureSingleNewlineAtEnd(contents: string): string {
+    return contents.trimEnd() + "\n";
+}
+
 export default function updateBacklinks(
     tree: Root,
     noteContents: string,
@@ -67,7 +71,7 @@ export default function updateBacklinks(
                 }
             ]
         };
-        backlinksString = `## Links to this note\n${backlinks
+        backlinksString = `\n## Links to this note\n${backlinks
             .map(
                 entry =>
                     `* [[${entry.sourceTitle}]]\n${entry.context
@@ -76,12 +80,12 @@ export default function updateBacklinks(
                         )
                         .join("")}`
             )
-            .join("")}\n`;
+            .join("")}`;
     }
 
 
     const newNoteContents =
-        noteContents.slice(0, insertionOffset) +
+        ensureSingleNewlineAtEnd(noteContents.slice(0, insertionOffset)) +
         backlinksString +
         noteContents.slice(oldEndOffset);
 

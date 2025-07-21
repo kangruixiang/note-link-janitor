@@ -1,7 +1,7 @@
 {
-  "name": "@andymatuschak/note-link-janitor",
+  "name": "@kangruixiang/note-link-janitor",
   "version": "0.0.1",
-  "author": "Andy Matuschak",
+  "author": "Kang Rui Xiang",
   "main": "out/index.js",
   "type": "module",
   "license": "MIT",
@@ -13,7 +13,7 @@
     "ts-node": "^10.9.2",
     "typescript": "~5.8.3"
   },
-  "repository": "andymatuschak/note-link-janitor",
+  "repository": "kangruixiang/note-link-janitor",
   "dependencies": {
     "@types/mdast": "^4.0.4",
     "pagerank.js": "^1.0.2",
