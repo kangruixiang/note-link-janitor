@@ -66,7 +66,6 @@ class NoteClass {
                 );
 
                 if (newContents !== this.notes[notePath].noteContents) {
-                    console.log('Updating note: ', notePath)
                     await this.writeContent(notePath, newContents)
                 }
             })
